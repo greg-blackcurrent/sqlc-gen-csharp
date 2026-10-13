@@ -143,3 +143,5 @@ plugin.wasm
 **/.env.bak
 
 **/*.wasm
+
+/wasi-sdk-22.0
