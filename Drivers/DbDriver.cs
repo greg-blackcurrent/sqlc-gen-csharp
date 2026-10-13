@@ -226,6 +226,13 @@ public abstract class DbDriver
         return [$"this.{Variable.ConnectionString.AsPropertyName()} = {Variable.ConnectionString.AsVarName()};"];
     }
 
+    // Returns (parameterType, body statements) for an extra data-source constructor,
+    // or null for drivers that have no data-source concept (SQLite / MySql here).
+    public virtual (string ParameterType, string[] Statements)? GetDataSourceConstructor()
+    {
+        return null;
+    }
+
     public string[] GetTransactionConstructorStatements()
     {
         return [$"this.{Variable.Transaction.AsPropertyName()} = {Variable.Transaction.AsVarName()};"];

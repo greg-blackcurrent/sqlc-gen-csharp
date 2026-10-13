@@ -565,7 +565,20 @@ public sealed class NpgsqlDriver : EnumDbDriver, IOne, IMany, IExec, IExecRows, 
             $"""
                 {dataSourceVar} = new Lazy<NpgsqlDataSource>(() => NpgsqlDataSource.Create({connectionStringVar}{optionalNotNullVerify}), LazyThreadSafetyMode.ExecutionAndPublication);
             """,
+            "_ownsDataSource = true;",
         ];
+    }
+
+    public override (string ParameterType, string[] Statements)? GetDataSourceConstructor()
+    {
+        var dataSourceVar = Variable.DataSource.AsVarName();      // "dataSource"
+        var dataSourceField = Variable.DataSource.AsFieldName();  // "_dataSource"
+        return ("NpgsqlDataSource",
+        [
+            // _ownsDataSource stays false (default) => injected source is not disposed
+            $"{dataSourceField} = new Lazy<NpgsqlDataSource>(() => {dataSourceVar});",
+            "_ownsDataSource = false;",
+        ]);
     }
 
     public override MemberDeclarationSyntax[] GetAdditionalClassMembers()
@@ -576,6 +589,9 @@ public sealed class NpgsqlDriver : EnumDbDriver, IOne, IMany, IExec, IExecRows, 
         return [
             ParseMemberDeclaration($$"""
                 private readonly Lazy<NpgsqlDataSource>{{optionalNotNullVerify}} {{dataSourceField}};
+            """)!,
+            ParseMemberDeclaration("""
+                private readonly bool _ownsDataSource;
             """)!,
             ParseMemberDeclaration($$"""
             private NpgsqlDataSource GetDataSource()
@@ -589,7 +605,7 @@ public sealed class NpgsqlDriver : EnumDbDriver, IOne, IMany, IExec, IExecRows, 
             public void Dispose()
             {
                 GC.SuppressFinalize(this);
-                if ({{dataSourceField}}?.IsValueCreated == true)
+                if (_ownsDataSource && {{dataSourceField}}?.IsValueCreated == true)
                     {{dataSourceField}}.Value.Dispose();
             }
             """)!

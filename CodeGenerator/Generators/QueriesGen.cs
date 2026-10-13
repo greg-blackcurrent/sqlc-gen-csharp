@@ -71,6 +71,16 @@ internal partial class QueriesGen(DbDriver dbDriver, string namespaceName)
         var baseTypes = dbDriver.GetClassBaseTypes();
         var baseTypesStr = baseTypes.Length > 0 ? $" : {string.Join(", ", baseTypes)}" : string.Empty;
 
+        var dsCtor = dbDriver.GetDataSourceConstructor();
+        var dataSourceConstructor = dsCtor is { } ds
+            ? $$"""
+                public {{className}}({{ds.ParameterType}} {{Variable.DataSource.AsVarName()}}) : this()
+                    {
+                        {{ds.Statements.JoinByNewLine()}}
+                    }
+                """
+            : string.Empty;
+
         var classDeclaration = (ClassDeclarationSyntax)ParseMemberDeclaration(
                 $$"""
                   public class {{className}}{{baseTypesStr}}
@@ -84,6 +94,8 @@ internal partial class QueriesGen(DbDriver dbDriver, string namespaceName)
                       {
                           {{dbDriver.GetConstructorStatements().JoinByNewLine()}}
                       }
+
+                      {{dataSourceConstructor}}
 
                       private {{className}}({{dbDriver.TransactionClassName}} {{Variable.Transaction.AsVarName()}}) : this()
                       {
