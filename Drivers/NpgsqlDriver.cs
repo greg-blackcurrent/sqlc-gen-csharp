@@ -134,11 +134,19 @@ public sealed class NpgsqlDriver : EnumDbDriver, IOne, IMany, IExec, IExecRows, 
                 new()
                 {
                     { "date", new(DbTypeOverride: "NpgsqlDbType.Date") },
-                    { "timestamp", new(DbTypeOverride: "NpgsqlDbType.Timestamp") },
-                    { "timestamptz", new(DbTypeOverride: "NpgsqlDbType.TimestampTz") }
+                    { "timestamp", new(DbTypeOverride: "NpgsqlDbType.Timestamp") }
                 },
                 readerFn: (ordinal, _) => $"{Variable.Reader.AsVarName()}.GetDateTime({ordinal})",
                 readerArrayFn: (ordinal, _) => $"{Variable.Reader.AsVarName()}.GetFieldValue<DateTime[]>({ordinal})",
+                usingDirectives: ["NpgsqlTypes"]
+            ),
+            ["DateTimeOffset"] = new(
+                new()
+                {
+                    { "timestamptz", new(DbTypeOverride: "NpgsqlDbType.TimestampTz") }
+                },
+                readerFn: (ordinal, _) => $"{Variable.Reader.AsVarName()}.GetFieldValue<DateTimeOffset>({ordinal})",
+                readerArrayFn: (ordinal, _) => $"{Variable.Reader.AsVarName()}.GetFieldValue<DateTimeOffset[]>({ordinal})",
                 usingDirectives: ["NpgsqlTypes"]
             ),
             ["Instant"] = new(
