@@ -96,7 +96,8 @@ public sealed class NpgsqlDriver : EnumDbDriver, IOne, IMany, IExec, IExecRows, 
             ["double"] = new(
                 new()
                 {
-                    { "float8", new() }
+                    { "float8", new() },
+                    { "double precision", new() }
                 },
                 readerFn: (ordinal, _) => $"{Variable.Reader.AsVarName()}.GetDouble({ordinal})",
                 readerArrayFn: (ordinal, _) => $"{Variable.Reader.AsVarName()}.GetFieldValue<double[]>({ordinal})"
